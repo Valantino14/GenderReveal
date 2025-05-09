@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎉 Gender Reveal Countdown 🎉</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            text-align: center;
+            background: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 20px auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .title {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 3px;
+            margin-bottom: 15px;
+        }
+        
+        .title-char {
+            font-size: 2em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            line-height: 1.2;
+        }
+        
+        .pink {
+            color: #ff69b4;
+        }
+        
+        .blue {
+            color: #1e90ff;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.3em;
+            margin-bottom: 30px;
+        }
+        
+        #countdown-container {
+            display: inline-block;
+            padding: 10px;
+            border-radius: 15px;
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        #countdown-container::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border-radius: 20px;
+            background: linear-gradient(45deg, 
+                          #ff69b4, #1e90ff, #ff69b4, #1e90ff);
+            background-size: 400% 400%;
+            z-index: -1;
+            animation: rgbBorder 3s linear infinite;
+        }
+        
+        @keyframes rgbBorder {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        #countdown {
+            font-size: 4em;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1);
+            transform: scale(1);
+            transition: transform 0.3s;
+            background: white;
+            padding: 10px 30px;
+            border-radius: 10px;
+        }
+        
+        #countdown.changing {
+            transform: scale(1.1);
+            color: #ff6b6b;
+        }
+        
+        #reveal-message {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 30px 0;
+            color: #1e90ff;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease-out;
+        }
+        
+        #reveal-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .baby-emoji {
+            font-size: 3em;
+            display: inline-block;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .reset-btn {
+            background-color: #1e90ff;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .reset-btn:hover {
+            background-color: #187bcd;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title" id="genderRevealTitle">
+            <!-- This will be filled by JavaScript -->
+        </div>
+        <div class="subtitle">The big moment starts in...</div>
+        
+        <div id="countdown-container">
+            <div id="countdown">10</div>
+        </div>
+        
+        <div id="reveal-message">
+            <span class="baby-emoji">👶</span><br>
+            It's a Boy!<br>
+            <span class="baby-emoji">💙</span>
+        </div>
+        
+        <button class="reset-btn" onclick="resetCountdown()">Start Again</button>
+    </div>
+
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+    <script>
+        // Create alternating pink and blue title
+        const titleText = "🎉Gender Reveal Countdown🎉";
+        const titleElement = document.getElementById('genderRevealTitle');
+        
+        for (let i = 0; i < titleText.length; i++) {
+            const charSpan = document.createElement('span');
+            charSpan.className = 'title-char ' + (i % 2 === 0 ? 'pink' : 'blue');
+            charSpan.textContent = titleText[i];
+            
+            if (titleText[i] === '🎉') {
+                charSpan.style.fontSize = '2.5em';
+                charSpan.style.margin = '0 5px';
+            }
+            
+            titleElement.appendChild(charSpan);
+        }
+
+        let countdown = 10;
+        const countdownElement = document.getElementById('countdown');
+        const revealMessage = document.getElementById('reveal-message');
+        let countdownInterval;
+
+        function updateCountdown() {
+            countdownElement.classList.add('changing');
+            setTimeout(() => {
+                countdownElement.classList.remove('changing');
+            }, 300);
+            
+            countdownElement.textContent = countdown;
+            
+            if (countdown <= 0) {
+                countdownElement.textContent = "0";
+                revealMessage.classList.add('show');
+                
+                fireConfetti();
+                setTimeout(fireConfetti, 500);
+                setTimeout(fireConfetti, 1000);
+                
+                clearInterval(countdownInterval);
+                return;
+            }
+            
+            countdown--;
+        }
+
+        function fireConfetti() {
+            confetti({
+                particleCount: 75,
+                spread: 100,
+                origin: { y: 0.6 },
+                colors: ['#ff69b4']
+            });
+            confetti({
+                particleCount: 75,
+                spread: 100,
+                origin: { y: 0.6 },
+                colors: ['#1e90ff']
+            });
+        }
+
+        function resetCountdown() {
+            countdown = 10;
+            countdownElement.textContent = countdown;
+            revealMessage.classList.remove('show');
+            clearInterval(countdownInterval);
+            countdownInterval = setInterval(updateCountdown, 1000);
+        }
+
+        // Start the countdown
+        countdownInterval = setInterval(updateCountdown, 1000);
+    </script>
+</body>
+</html>
